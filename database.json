@@ -1,0 +1,42 @@
+[
+    {
+        "id": "1",
+        "university": "東京第一大学",
+        "faculty": "理学部",
+        "year": "2023",
+        "subject": "英語",
+        "question_text": "次の英文を読み、後の問いに答えなさい。\n\nArtificial intelligence (AI) has rapidly transformed various sectors of the economy...\n\n問1: 下線部(1)を日本語に訳しなさい。\n問2: 筆者の主張として最も適切なものを1つ選びなさい。"
+    },
+    {
+        "id": "2",
+        "university": "東京第一大学",
+        "faculty": "理学部",
+        "year": "2023",
+        "subject": "数学",
+        "question_text": "第1問\n(1) 2次方程式 x^2 - 4x + k = 0 が異なる2つの実数解をもつような、定数kの値の範囲を求めよ。\n\n(2) 関数 f(x) = x^3 - 3x^2 + 2x の極値を求めよ。"
+    },
+    {
+        "id": "3",
+        "university": "関西中央大学",
+        "faculty": "文学部",
+        "year": "2022",
+        "subject": "国語",
+        "question_text": "次の文章を読んで、あとの問いに答えよ。\n\n「現代社会において、情報というものは...」\n\n問1: 漢字の読みを記せ。\n(ア) 混沌　(イ) 乖離\n問2: 「それ」が指す内容を30字以内で説明せよ。"
+    },
+    {
+        "id": "4",
+        "university": "北海道北斗大学",
+        "faculty": "農学部",
+        "year": "2021",
+        "subject": "生物",
+        "question_text": "第3問\n光合成におけるカルビン・ベンソン回路について、以下の問いに答えよ。\n\n問1: CO2が最初に固定される物質の名称を答えよ。\n問2: この反応を触媒する酵素の名称を答えよ。"
+    },
+    {
+        "id": "5",
+        "university": "九州西大学",
+        "faculty": "工学部",
+        "year": "2023",
+        "subject": "物理",
+        "question_text": "第2問\n図のように、なめらかな水平面上に質量mの物体Aと質量Mの物体Bが置かれている。...\n\n問1: 物体Aの加速度を求めよ。\n問2: 糸の張力を求めよ。"
+    }
+]
