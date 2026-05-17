@@ -27,35 +27,83 @@
                 <span>ExamArchive</span>
             </div>
             
-            <div class="filters">
-                <h3>検索フィルター</h3>
-                
-                <div class="filter-group">
-                    <label for="search-text">キーワード検索</label>
-                    <input type="text" id="search-text" placeholder="問題文や大学名を入力...">
-                </div>
-
-                <div class="filter-group">
-                    <label for="filter-university">大学名</label>
-                    <select id="filter-university">
-                        <option value="">すべての大学</option>
-                    </select>
-                </div>
-
-                <div class="filter-group">
-                    <label for="filter-year">年度</label>
-                    <select id="filter-year">
-                        <option value="">すべての年度</option>
-                    </select>
-                </div>
-
-                <div class="filter-group">
-                    <label for="filter-subject">科目</label>
-                    <select id="filter-subject">
-                        <option value="">すべての科目</option>
-                    </select>
-                </div>
+            <button id="btn-open-post" class="btn-primary" style="width: 100%; margin-bottom: 2rem; justify-content: center;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                問題を投稿する
+            </button>
+            
+            <div class="search-box">
+                <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                <input type="text" id="search-text" placeholder="キーワード・作成者を検索...">
             </div>
+
+            <div class="nav-menu">
+                    <h3 class="nav-title">単元を絞り込む</h3>
+                    <ul class="nav-list">
+                        <li><a href="#" class="unit-link active" data-unit="すべて">📚 すべての問題</a></li>
+                    </ul>
+
+                    <div class="nav-section">
+                        <div class="nav-section-title">数学Ⅰ</div>
+                        <ul class="nav-list">
+                            <li><a href="#" class="unit-link" data-unit="数と式">数と式</a></li>
+                            <li><a href="#" class="unit-link" data-unit="集合と論証">集合と論証</a></li>
+                            <li><a href="#" class="unit-link" data-unit="二次関数">二次関数</a></li>
+                            <li><a href="#" class="unit-link" data-unit="図形と計量">図形と計量</a></li>
+                            <li><a href="#" class="unit-link" data-unit="データの分析">データの分析</a></li>
+                        </ul>
+                    </div>
+
+                    <div class="nav-section">
+                        <div class="nav-section-title">数学A</div>
+                        <ul class="nav-list">
+                            <li><a href="#" class="unit-link" data-unit="場合の数">場合の数</a></li>
+                            <li><a href="#" class="unit-link" data-unit="確率">確率</a></li>
+                            <li><a href="#" class="unit-link" data-unit="図形の性質">図形の性質</a></li>
+                            <li><a href="#" class="unit-link" data-unit="整数">整数の性質</a></li>
+                        </ul>
+                    </div>
+
+                    <div class="nav-section">
+                        <div class="nav-section-title">数学Ⅱ</div>
+                        <ul class="nav-list">
+                            <li><a href="#" class="unit-link" data-unit="式と証明">式と証明</a></li>
+                            <li><a href="#" class="unit-link" data-unit="複素数">複素数と方程式</a></li>
+                            <li><a href="#" class="unit-link" data-unit="図形と方程式">図形と方程式</a></li>
+                            <li><a href="#" class="unit-link" data-unit="三角関数">三角関数</a></li>
+                            <li><a href="#" class="unit-link" data-unit="指数・対数関数">指数・対数関数</a></li>
+                            <li><a href="#" class="unit-link" data-unit="微分">微分</a></li>
+                            <li><a href="#" class="unit-link" data-unit="積分">積分</a></li>
+                        </ul>
+                    </div>
+
+                    <div class="nav-section">
+                        <div class="nav-section-title">数学B</div>
+                        <ul class="nav-list">
+                            <li><a href="#" class="unit-link" data-unit="数列">数列</a></li>
+                            <li><a href="#" class="unit-link" data-unit="漸化式">漸化式</a></li>
+                            <li><a href="#" class="unit-link" data-unit="統計的推測">統計的推測</a></li>
+                        </ul>
+                    </div>
+
+                    <div class="nav-section">
+                        <div class="nav-section-title">数学Ⅲ</div>
+                        <ul class="nav-list">
+                            <li><a href="#" class="unit-link" data-unit="極限">極限</a></li>
+                            <li><a href="#" class="unit-link" data-unit="微積分">微積分（数Ⅲ）</a></li>
+                            <li><a href="#" class="unit-link" data-unit="曲線">曲線と複素数平面</a></li>
+                        </ul>
+                    </div>
+
+                    <div class="nav-section">
+                        <div class="nav-section-title">数学C</div>
+                        <ul class="nav-list">
+                            <li><a href="#" class="unit-link" data-unit="ベクトル">ベクトル</a></li>
+                            <li><a href="#" class="unit-link" data-unit="行列">行列</a></li>
+                            <li><a href="#" class="unit-link" data-unit="二次曲線">二次曲線</a></li>
+                        </ul>
+                    </div>
+                </div>
         </aside>
 
         <!-- Main Content -->
@@ -105,6 +153,37 @@
                 <button class="btn-primary" onclick="window.print()">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
                     印刷する
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for posting a new question -->
+    <div id="post-modal" class="modal-overlay">
+        <div class="modal-content">
+            <button class="close-modal" id="close-post-modal">×</button>
+            <div class="modal-header">
+                <h2>新しい問題を投稿</h2>
+                <p class="modal-subtitle">TeXコードを貼り付けてください。先頭のタグを自動で読み取ります。</p>
+            </div>
+            <div class="modal-body">
+                <textarea id="post-tex-input" class="tex-input" placeholder="@author {あなたの名前}
+@category{確率, 場合の数}
+@university{東京大学}
+@year{2026}
+@difficulty{3}
+
+\begin{document}
+\begin{qlist}
+\qitem 問題文をここに...
+\end{qlist}
+\end{document}"></textarea>
+                <div id="post-status" style="margin-top: 1rem; color: #ef4444; font-size: 0.9rem; display: none;"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-primary" id="btn-submit-post">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                    送信する
                 </button>
             </div>
         </div>

@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"></script>
+    <style>
+        .question-preview { font-size: 1.2rem; }
+    </style>
+</head>
+<body>
+    <div id="container"></div>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const container = document.getElementById("container");
+            
+            // This is exactly what parseTexData outputs for question_text
+            // Note: backslashes must be doubled in JS string literals
+            const question_text = `
+(1) \\(a,b,c,d\\)は非負整数であり、\\(0\\le a,b,c,d\\le4\\)を満たすものとする。\\\\
+このとき\\(a+2b+3c+4d\\)が\\(5\\)の倍数となる\\((a,b,c,d)\\)の組の個数を求めよ。
+
+(2) \\(p\\)を2でない素数とする。数列\\(a_i(i=1,2...p-1)\\)は自然数であり、\\(1\\le a_i \\le p-1\\)を満たすものとする。ここで和\\(S\\)を\\(S=\\displaystyle\\sum ^{p-1}_{i=1}ia_i\\)と定義する。\\(S\\)が\\(p\\)の倍数となる\\((a_1,a_2,...,a_{p-1})\\)の組の個数を求めよ。
+            `.trim();
+            
+            const card = document.createElement('div');
+            card.innerHTML = `<div class="question-preview">${question_text}</div>`;
+            container.appendChild(card);
+            
+            renderMathInElement(container, {
+                delimiters: [
+                    {left: "$$", right: "$$", display: true},
+                    {left: "\\[", right: "\\]", display: true},
+                    {left: "$", right: "$", display: false},
+                    {left: "\\(", right: "\\)", display: false}
+                ],
+                throwOnError: false
+            });
+        });
+    </script>
+</body>
+</html>

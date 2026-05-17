@@ -1,5 +1,6 @@
-// --- 設定 ---
-const API_URL = "https://script.google.com/macros/s/AKfycbxE1w0gG-dFJ5oj6nzVq2hWzQqaoh-gNBGKr6tDyAr0mVPm0ljVul3tmAhS2ZVUQOmFYA/exec";
+app_js_content = """// --- 設定 ---
+// TODO: あなたが発行したGoogle Apps Scriptの「ウェブアプリのURL」をここに貼り付けてください
+const API_URL = "YOUR_GAS_WEB_APP_URL_HERE";
 
 // --- State ---
 let allQuestions = [];
@@ -59,50 +60,6 @@ async function fetchQuestions() {
     }
 }
 
-// KaTeX設定（共通）
-const KATEX_OPTS = {
-    delimiters: [
-        {left: "$$", right: "$$", display: true},
-        {left: "\\[", right: "\\]", display: true},
-        {left: "$", right: "$", display: false},
-        {left: "\\(", right: "\\)", display: false}
-    ],
-    throwOnError: false
-};
-
-// TeXの \\\\ (改行コマンド)を改行文字に変換するヘルパー
-function cleanTexForDisplay(text) {
-    if (!text) return '';
-    
-    let cleaned = text;
-
-    // 1. section, subsection 見出しを綺麗に装飾
-    cleaned = cleaned.replace(/\\(?:subsection|section|subsubsection)\*?\{([^}]+)\}/g, '\n【$1】\n');
-
-    // 2. リスト・レイアウト用の環境タグを削除
-    cleaned = cleaned.replace(/\\(?:begin|end)\{(?:qlist|enumerate|itemize|center|document)\}/g, '');
-
-    // 3. カスタムラベル付き項目 \item[(1)] や \qitem[(1)] を (1) に変換
-    cleaned = cleaned.replace(/\\(?:qitem|item)\s*\[([^\]]+)\]/g, '\n$1 ');
-
-    // 4. 通常の項目 \item や \qitem を連番 (1), (2), ... に変換
-    let itemCounter = 1;
-    cleaned = cleaned.replace(/\\(?:qitem|item)\b/g, () => {
-        return `\n(${itemCounter++}) `;
-    });
-
-    // 5. レイアウト専用のTeXコマンドを削除・改行化
-    cleaned = cleaned.replace(/\\noindent\b/g, '');
-    cleaned = cleaned.replace(/\\(?:medskip|bigskip|smallskip)\b/g, '\n');
-    cleaned = cleaned.replace(/\\(?:vspace|hspace)\{[^}]*\}/g, '');
-
-    // 6. \\ (TeXの改行) を実際の改行文字に変換
-    cleaned = cleaned.replace(/\\\\/g, '\n');
-
-    // 7. 連続する改行を整理
-    return cleaned.replace(/\n{3,}/g, '\n\n').trim();
-}
-
 // --- Render & Filter ---
 function renderQuestions(questions) {
     questionsContainer.innerHTML = '';
@@ -124,39 +81,23 @@ function renderQuestions(questions) {
                 unitsArr = q.units.split(',').map(s => s.trim()).filter(s => s);
             }
             const unitsHtml = unitsArr.map(u => `<span class="tag unit">${u}</span>`).join('');
-
-            // 難易度バッジ（星数）
-            const diff = parseInt(q.difficulty) || 0;
-            const diffHtml = diff > 0
-                ? `<span class="tag difficulty diff-${diff}">${'★'.repeat(diff)}${'☆'.repeat(5 - diff)}</span>`
-                : '';
             
-            // HTMLのシェルだけを innerHTML で作り、問題文は textContent で設定する
-            // （innerHTML に直接埋め込むと \ が HTML パーサーに壊される）
             card.innerHTML = `
                 <div class="card-header">
+                    <div>
+                        <div class="univ-name">${q.university || '不明'}</div>
+                        <div class="faculty-name">${q.faculty || ''} - ${q.year || ''}年</div>
+                    </div>
                     <div class="tags">
                         <span class="tag subject">${q.subject || '数学'}</span>
                         ${unitsHtml}
-                        ${diffHtml}
                     </div>
                 </div>
-                <div class="card-meta">
-                    <span class="card-univ">
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-                        ${q.university || '不明'}（${q.year || ''}年）
-                    </span>
-                    <span class="card-author">
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-                        ${q.author || '不明'}
-                    </span>
+                <div class="question-preview">${q.question_text || ''}</div>
+                <div class="card-footer" style="margin-top: 1rem; font-size: 0.8rem; color: var(--text-secondary); text-align: right;">
+                    作成者: ${q.author || '不明'}
                 </div>
-                <div class="question-preview"></div>
             `;
-            
-            // textContent でセット → KaTeX が正しく認識できる
-            const previewEl = card.querySelector('.question-preview');
-            previewEl.textContent = cleanTexForDisplay(q.question_text);
             
             card.addEventListener('click', () => openQuestionModal(q));
             questionsContainer.appendChild(card);
@@ -164,7 +105,15 @@ function renderQuestions(questions) {
         
         // Render math in the new cards
         if (window.renderMathInElement) {
-            renderMathInElement(questionsContainer, KATEX_OPTS);
+            renderMathInElement(questionsContainer, {
+                delimiters: [
+                    {left: "$$", right: "$$", display: true},
+                    {left: "\\[", right: "\\]", display: true},
+                    {left: "$", right: "$", display: false},
+                    {left: "\\(", right: "\\)", display: false}
+                ],
+                throwOnError: false
+            });
         }
     }
     
@@ -237,25 +186,27 @@ function openQuestionModal(q) {
     else if (typeof q.units === 'string') unitsArr = q.units.split(',').map(s => s.trim()).filter(s => s);
     const unitsHtml = unitsArr.map(u => `<span class="tag unit">${u}</span>`).join('');
     
-    const diff = parseInt(q.difficulty) || 0;
-    const diffHtml = diff > 0
-        ? `<span class="tag difficulty diff-${diff}">${'★'.repeat(diff)}${'☆'.repeat(5 - diff)}</span>`
-        : '';
-
     document.getElementById('modal-tags').innerHTML = `
         <span class="tag subject">${q.subject || '数学'}</span>
         <span class="tag year">${q.year || ''}年</span>
         ${unitsHtml}
-        ${diffHtml}
     `;
     document.getElementById('modal-title').textContent = `${q.university || ''} ${q.year || ''}年 ${q.faculty || ''}`;
     document.getElementById('modal-subtitle').textContent = `作成者: ${q.author || '不明'}`;
     
     const textEl = document.getElementById('modal-text');
-    textEl.textContent = cleanTexForDisplay(q.question_text);
+    textEl.textContent = q.question_text || '';
     
     if (window.renderMathInElement) {
-        renderMathInElement(textEl, KATEX_OPTS);
+        renderMathInElement(textEl, {
+            delimiters: [
+                {left: "$$", right: "$$", display: true},
+                {left: "\\[", right: "\\]", display: true},
+                {left: "$", right: "$", display: false},
+                {left: "\\(", right: "\\)", display: false}
+            ],
+            throwOnError: false
+        });
     }
     
     questionModal.classList.add('active');
@@ -308,69 +259,31 @@ async function handlePostSubmit() {
 
 function parseTexData(tex) {
     // 簡易的なTeXパーサー（ブラウザ版）
+    const lines = tex.split('\\n');
     let author = "不明";
     let categories = [];
     let university = "未設定";
     let year = new Date().getFullYear().toString();
     
-    // Extract metadata (supports both "% @author: name" and "@author {name}")
-    const authorMatch = tex.match(/(?:%\s*@author:|@author\s*\{)\s*([^}\n]+)/);
+    // Extract metadata from comments
+    const authorMatch = tex.match(/%\\s*@author:\\s*(.+)/);
     if (authorMatch) author = authorMatch[1].trim();
     
-    const catMatch = tex.match(/(?:%\s*@category:|@category\s*\{)\s*([^}\n]+)/);
-    if (catMatch) {
-        // 全角カンマや読点「、」も分割に対応
-        categories = catMatch[1].split(/[,、]/).map(s => s.trim()).filter(s => s);
-    }
+    const catMatch = tex.match(/%\\s*@category:\\s*(.+)/);
+    if (catMatch) categories = catMatch[1].split(',').map(s => s.trim());
     
-    const univMatch = tex.match(/(?:%\s*@university:|@university\s*\{)\s*([^}\n]+)/);
+    const univMatch = tex.match(/%\\s*@university:\\s*(.+)/);
     if (univMatch) university = univMatch[1].trim();
     
-    const yearMatch = tex.match(/(?:%\s*@year:|@year\s*\{)\s*(\d+)/);
+    const yearMatch = tex.match(/%\\s*@year:\\s*(\\d+)/);
     if (yearMatch) year = yearMatch[1].trim();
-
-    // 難易度: @difficulty{3} または % @difficulty: 3（数字1～5）
-    let difficulty = null;
-    const diffMatch = tex.match(/(?:%\s*@difficulty:|@difficulty\s*\{)\s*([1-5])/);
-    if (diffMatch) difficulty = parseInt(diffMatch[1]);
     
-    // --- 本文の抽出とクリーンアップ ---
-    let bodyText = tex;
+    // Remove metadata lines to get pure body
+    let bodyText = lines.filter(l => !l.trim().startsWith('%')).join('\\n').trim();
     
-    // 1. メタデータ行を削除
-    bodyText = bodyText.replace(/%\s*@.*\n?/g, '');
-    bodyText = bodyText.replace(/@(?:author|category|university|year|difficulty)\s*\{.*?\}\n?/g, '');
-    
-    // 2. プリアンブル（\documentclass 等）を削除し、\begin{document}の中身だけにする
-    const docMatch = bodyText.match(/\\begin\{document\}([\s\S]*?)(?:\\end\{document\}|$)/);
-    if (docMatch) {
-        bodyText = docMatch[1];
-    }
-    
-    // 3. カスタムタグやリスト環境をWeb用に変換
-    
-    // section, subsection 見出しを綺麗に装飾
-    bodyText = bodyText.replace(/\\(?:subsection|section|subsubsection)\*?\{([^}]+)\}/g, '\n【$1】\n');
-
-    // リスト・レイアウト用の環境タグを削除
-    bodyText = bodyText.replace(/\\(?:begin|end)\{(?:qlist|enumerate|itemize|center|document)\}/g, '');
-
-    // カスタムラベル付き項目 \item[(1)] や \qitem[(1)] を (1) に変換
-    bodyText = bodyText.replace(/\\(?:qitem|item)\s*\[([^\]]+)\]/g, '\n$1 ');
-
-    // 通常の項目 \item や \qitem を連番 (1), (2), ... に変換
-    let itemCounter = 1;
-    bodyText = bodyText.replace(/\\(?:qitem|item)\b/g, () => {
-        return `\n(${itemCounter++}) `;
-    });
-
-    // レイアウト専用のTeXコマンドを削除・改行化
-    bodyText = bodyText.replace(/\\noindent\b/g, '');
-    bodyText = bodyText.replace(/\\(?:medskip|bigskip|smallskip)\b/g, '\n');
-    bodyText = bodyText.replace(/\\(?:vspace|hspace)\{[^}]*\}/g, '');
-
-    // 前後の不要な空白をトリム
-    bodyText = bodyText.trim();
+    // Clean up basic tex tags
+    bodyText = bodyText.replace(/\\\\begin\\{enumerate\\}/g, '');
+    bodyText = bodyText.replace(/\\\\end\\{enumerate\\}/g, '');
     
     // UUIDっぽいIDを生成
     const uniqueId = university + "_" + year + "_" + Math.random().toString(36).substring(2, 7);
@@ -378,12 +291,11 @@ function parseTexData(tex) {
     return {
         id: uniqueId,
         university: university,
-        faculty: "未設定", 
+        faculty: "理系", 
         year: year,
         subject: "数学",
         author: author,
-        units: categories,
-        difficulty: difficulty,
+        units: categories, // GAS側で配列を正しく文字列にするロジックが入っています
         question_text: bodyText
     };
 }
@@ -396,3 +308,9 @@ function showPostStatus(msg, isError) {
 
 // Initialize app
 document.addEventListener('DOMContentLoaded', init);
+"""
+
+with open(r"c:\Users\norih\OneDrive\Desktop\sample.anti\app.js", "w", encoding="utf-8") as f:
+    f.write(app_js_content)
+
+print("app.js rewritten successfully.")
