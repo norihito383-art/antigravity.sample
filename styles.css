@@ -268,7 +268,7 @@ body {
 /* Grid */
 .questions-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    grid-template-columns: 1fr;
     gap: 1.5rem;
 }
 
@@ -277,18 +277,10 @@ body {
     background: var(--surface-color);
     border: 1px solid var(--surface-border);
     border-radius: 16px;
-    padding: 1.5rem;
-    transition: all 0.2s ease;
-    cursor: pointer;
+    padding: 1.5rem 2rem;
     display: flex;
     flex-direction: column;
     box-shadow: var(--shadow-sm);
-}
-
-.question-card:hover {
-    transform: translateY(-4px);
-    box-shadow: var(--shadow-md);
-    border-color: var(--primary-color);
 }
 
 .card-header {
@@ -349,12 +341,11 @@ body {
 
 .question-preview {
     font-size: 0.95rem;
-    color: #475569;
+    color: var(--text-primary);
     line-height: 1.6;
     flex-grow: 1;
     white-space: pre-wrap;
-    overflow: hidden;
-    max-height: 8rem;
+    margin-top: 1rem;
 }
 
 /* Modal */

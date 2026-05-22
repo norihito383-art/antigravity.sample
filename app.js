@@ -190,11 +190,22 @@ function renderQuestions(questions) {
                 <div class="question-preview"></div>
             `;
 
-            // textContent でセット → KaTeX が正しく認識できる
             const previewEl = card.querySelector('.question-preview');
-            previewEl.textContent = cleanTexForDisplay(q.question_text);
+            
+            if (q.pdf_url) {
+                // PDFがある場合はPDFを展開して描画
+                const pdfContainer = document.createElement('div');
+                pdfContainer.style.display = 'flex';
+                pdfContainer.style.flexDirection = 'column';
+                pdfContainer.style.alignItems = 'center'; // 中央揃え
+                pdfContainer.style.gap = '1rem';
+                previewEl.appendChild(pdfContainer);
+                renderPdfToContainer(q.pdf_url, pdfContainer);
+            } else {
+                // PDFがない場合はテキスト（KaTeX用）を表示
+                previewEl.textContent = cleanTexForDisplay(q.question_text);
+            }
 
-            card.addEventListener('click', () => openQuestionModal(q));
             questionsContainer.appendChild(card);
         });
 
@@ -368,6 +379,7 @@ async function renderPdfToContainer(url, container) {
             
             const canvas = document.createElement('canvas');
             canvas.style.width = '100%';
+            canvas.style.maxWidth = '650px'; // 大きくなりすぎるのを防ぐ
             canvas.style.height = 'auto';
             canvas.style.borderRadius = '8px';
             canvas.style.boxShadow = 'var(--shadow-sm)';
@@ -395,14 +407,147 @@ async function renderPdfToContainer(url, container) {
             
             const renderContext = {
                 canvasContext: context,
-                viewport: viewport
+                viewport: viewport,
+                background: 'rgba(255,255,255,1)'
             };
             await page.render(renderContext).promise;
+            
+            // 余白を自動的にトリミングする
+            cropCanvasWhitespace(canvas);
         }
     } catch (error) {
         console.error('PDFの描画に失敗しました:', error);
         container.innerHTML = '<div style="color:#ef4444;">PDFの読み込みに失敗しました。</div>';
     }
+}
+
+// PDFの余白を自動でトリミングする関数
+function cropCanvasWhitespace(canvas) {
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
+    const width = canvas.width;
+    const height = canvas.height;
+    
+    let imageData;
+    try {
+        imageData = ctx.getImageData(0, 0, width, height);
+    } catch (e) {
+        return;
+    }
+    const data = imageData.data;
+    
+    let top = 0, bottom = height - 1, left = 0, right = width - 1;
+    
+    // 真っ白（RGB > 245）または透明なピクセルは「余白」とみなす
+    const isNotBackground = (r, g, b, a) => {
+        if (a < 10) return false;
+        if (r > 245 && g > 245 && b > 245) return false;
+        return true;
+    };
+    
+    // Top
+    outerTop: for (let y = 0; y < height; y++) {
+        for (let x = 0; x < width; x++) {
+            const i = (y * width + x) * 4;
+            if (isNotBackground(data[i], data[i+1], data[i+2], data[i+3])) {
+                top = y; break outerTop;
+            }
+        }
+    }
+    
+    // Bottom (仮決定)
+    outerBottom: for (let y = height - 1; y >= 0; y--) {
+        for (let x = 0; x < width; x++) {
+            const i = (y * width + x) * 4;
+            if (isNotBackground(data[i], data[i+1], data[i+2], data[i+3])) {
+                bottom = y; break outerBottom;
+            }
+        }
+    }
+    
+    // --- フッター（ページ番号など）の除外処理 ---
+    // 下部から上に向かってスキャンし、大きな空白で区切られた小さなブロックを無視する
+    let currentBlockHeight = 0;
+    let whiteGap = 0;
+    let newBottom = bottom;
+    
+    for (let y = bottom; y >= top; y--) {
+        let hasContent = false;
+        for (let x = 0; x < width; x++) {
+             const i = (y * width + x) * 4;
+             if (isNotBackground(data[i], data[i+1], data[i+2], data[i+3])) {
+                 hasContent = true; 
+                 break;
+             }
+        }
+        
+        if (hasContent) {
+            if (whiteGap > 60) {
+                if (currentBlockHeight < 100) {
+                    // 高さが100px未満で、60px以上の空白がある場合はフッターとみなして切り捨てる
+                    newBottom = y;
+                    currentBlockHeight = 1;
+                    whiteGap = 0;
+                } else {
+                    // フッターではない本文ブロックに到達したためスキャン終了
+                    break;
+                }
+            } else {
+                currentBlockHeight += whiteGap + 1;
+                whiteGap = 0;
+            }
+        } else {
+            if (currentBlockHeight > 0) {
+                whiteGap++;
+            }
+        }
+    }
+    bottom = newBottom;
+
+    // Left (新しいbottomを元に再計算)
+    outerLeft: for (let x = 0; x < width; x++) {
+        for (let y = top; y <= bottom; y++) {
+            const i = (y * width + x) * 4;
+            if (isNotBackground(data[i], data[i+1], data[i+2], data[i+3])) {
+                left = x; break outerLeft;
+            }
+        }
+    }
+    
+    // Right (新しいbottomを元に再計算)
+    outerRight: for (let x = width - 1; x >= 0; x--) {
+        for (let y = top; y <= bottom; y++) {
+            const i = (y * width + x) * 4;
+            if (isNotBackground(data[i], data[i+1], data[i+2], data[i+3])) {
+                right = x; break outerRight;
+            }
+        }
+    }
+
+    // 上下左右に少し余白（パディング）を残す
+    const padding = 40;
+    top = Math.max(0, top - padding);
+    bottom = Math.min(height, bottom + padding);
+    left = Math.max(0, left - padding);
+    right = Math.min(width, right + padding);
+
+    const cropWidth = right - left;
+    const cropHeight = bottom - top;
+
+    if (cropWidth <= 0 || cropHeight <= 0) return;
+
+    // 切り抜き処理
+    const tempCanvas = document.createElement('canvas');
+    tempCanvas.width = cropWidth;
+    tempCanvas.height = cropHeight;
+    const tempCtx = tempCanvas.getContext('2d');
+    
+    tempCtx.fillStyle = '#ffffff';
+    tempCtx.fillRect(0, 0, cropWidth, cropHeight);
+    tempCtx.drawImage(canvas, left, top, cropWidth, cropHeight, 0, 0, cropWidth, cropHeight);
+    
+    canvas.width = cropWidth;
+    canvas.height = cropHeight;
+    ctx.drawImage(tempCanvas, 0, 0);
 }
 
 // --- Posting Logic ---
