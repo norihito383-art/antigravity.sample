@@ -577,13 +577,12 @@ body {
 .separator-text::before { left: 0; }
 .separator-text::after { right: 0; }
 
-/* PDF Viewer iframe */
-#modal-pdf-viewer {
+/* PDF Viewer Container */
+#modal-pdf-container {
     width: 100%;
-    height: 600px;
-    border: none;
+    background-color: var(--bg-color);
     border-radius: 8px;
-    background-color: #e2e8f0;
+    padding: 1rem;
 }
 
 /* Responsive */

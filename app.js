@@ -5,11 +5,11 @@ const API_URL = "https://script.google.com/macros/s/AKfycbye7Ufg7vxLehmNYwm2Xjyo
 // TODO: ご自身のFirebaseプロジェクトの設定に書き換えてください
 const firebaseConfig = {
     apiKey: "AIzaSyADrTnG81pPPheXmIsupKI83Czo-9eo6-A",
-    authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-    projectId: "YOUR_PROJECT_ID",
-    storageBucket: "YOUR_PROJECT_ID.appspot.com",
-    messagingSenderId: "YOUR_SENDER_ID",
-    appId: "YOUR_APP_ID"
+    authDomain: "database-sample-7b11c.firebaseapp.com",
+    projectId: "database-sample-7b11c",
+    storageBucket: "database-sample-7b11c.firebasestorage.app",
+    messagingSenderId: "435691544951",
+    appId: "1:435691544951:web:fb51a326310001a0754172"
 };
 
 // Initialize Firebase
@@ -46,7 +46,7 @@ const postStatus = document.getElementById('post-status');
 // New File Input Elements
 const postPdfInput = document.getElementById('post-pdf-input');
 const postTexFileInput = document.getElementById('post-tex-file-input');
-const modalPdfViewer = document.getElementById('modal-pdf-viewer');
+const modalPdfContainer = document.getElementById('modal-pdf-container');
 const modalText = document.getElementById('modal-text');
 
 // --- Setup ---
@@ -120,6 +120,17 @@ function cleanTexForDisplay(text) {
     cleaned = cleaned.replace(/\\noindent\b/g, '');
     cleaned = cleaned.replace(/\\(?:medskip|bigskip|smallskip)\b/g, '\n');
     cleaned = cleaned.replace(/\\(?:vspace|hspace)\{[^}]*\}/g, '');
+
+    // フォント・サイズのスタイル指定コマンドを削除
+    cleaned = cleaned.replace(/\\(?:mdseries|normalsize|bfseries|itshape|large|small|Huge|huge|LARGE|Large|footnotesize|scriptsize|tiny|rmfamily|sffamily|ttfamily|upshape|slshape|scshape)\b/g, '');
+    // 上の削除で残った空のカッコ {} を消す
+    cleaned = cleaned.replace(/\{\s*\}/g, '');
+
+    // 共通テストの枠 \ansbox{ア} などを [ ア ] に変換
+    cleaned = cleaned.replace(/\\ansbox\{([^}]+)\}/g, '[ $1 ]');
+
+    // tikzpicture環境はKaTeXで描画できないため [図] という文字に置き換え
+    cleaned = cleaned.replace(/\\begin\{tikzpicture\}[\s\S]*?\\end\{tikzpicture\}/g, '\n[図]\n');
 
     // 6. \\ (TeXの改行) を実際の改行文字に変換
     cleaned = cleaned.replace(/\\\\/g, '\n');
@@ -314,14 +325,17 @@ function openQuestionModal(q) {
     document.getElementById('modal-title').textContent = `${q.university || ''} ${q.year || ''}年 ${q.faculty || ''}`;
     document.getElementById('modal-subtitle').textContent = `作成者: ${q.author || '不明'}`;
 
-    // PDFがある場合はiframeを表示、ない場合はKaTeXテキストを表示
+    // PDFがある場合はCanvasで画像として表示、ない場合はKaTeXテキストを表示
     if (q.pdf_url) {
         modalText.style.display = 'none';
-        modalPdfViewer.style.display = 'block';
-        modalPdfViewer.src = q.pdf_url;
+        modalPdfContainer.style.display = 'flex';
+        
+        // PDF.jsを使ってPDFを画像（Canvas）として描画
+        renderPdfToContainer(q.pdf_url, modalPdfContainer);
     } else {
-        modalPdfViewer.style.display = 'none';
-        modalPdfViewer.src = '';
+        modalPdfContainer.style.display = 'none';
+        modalPdfContainer.innerHTML = ''; // クリア
+        
         modalText.style.display = 'block';
         modalText.textContent = cleanTexForDisplay(q.question_text);
 
@@ -331,6 +345,64 @@ function openQuestionModal(q) {
     }
 
     questionModal.classList.add('active');
+}
+
+async function renderPdfToContainer(url, container) {
+    container.innerHTML = '<div style="text-align:center; padding: 2rem; color: #64748b;">PDFを画像として読み込み中...</div>';
+    
+    try {
+        const loadingTask = pdfjsLib.getDocument({
+            url: url,
+            cMapUrl: 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/cmaps/',
+            cMapPacked: true,
+            standardFontDataUrl: 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/standard_fonts/'
+        });
+        const pdf = await loadingTask.promise;
+        container.innerHTML = ''; // ローディング消去
+        
+        for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+            const page = await pdf.getPage(pageNum);
+            
+            // 解像度を高めに設定（1.5倍）して綺麗に表示
+            const viewport = page.getViewport({ scale: 1.5 });
+            
+            const canvas = document.createElement('canvas');
+            canvas.style.width = '100%';
+            canvas.style.height = 'auto';
+            canvas.style.borderRadius = '8px';
+            canvas.style.boxShadow = 'var(--shadow-sm)';
+            canvas.style.cursor = 'pointer';
+            canvas.style.transition = 'transform 0.2s ease, box-shadow 0.2s ease';
+            
+            // クリックでPDFを別タブで開く（ダウンロードや全画面表示用）
+            canvas.onclick = () => window.open(url, '_blank');
+            
+            // ホバー時のアニメーション
+            canvas.onmouseenter = () => {
+                canvas.style.transform = 'translateY(-2px)';
+                canvas.style.boxShadow = 'var(--shadow-md)';
+            };
+            canvas.onmouseleave = () => {
+                canvas.style.transform = 'translateY(0)';
+                canvas.style.boxShadow = 'var(--shadow-sm)';
+            };
+            
+            const context = canvas.getContext('2d');
+            canvas.height = viewport.height;
+            canvas.width = viewport.width;
+            
+            container.appendChild(canvas);
+            
+            const renderContext = {
+                canvasContext: context,
+                viewport: viewport
+            };
+            await page.render(renderContext).promise;
+        }
+    } catch (error) {
+        console.error('PDFの描画に失敗しました:', error);
+        container.innerHTML = '<div style="color:#ef4444;">PDFの読み込みに失敗しました。</div>';
+    }
 }
 
 // --- Posting Logic ---
@@ -479,6 +551,12 @@ function parseTexData(tex) {
     bodyText = bodyText.replace(/\\noindent\b/g, '');
     bodyText = bodyText.replace(/\\(?:medskip|bigskip|smallskip)\b/g, '\n');
     bodyText = bodyText.replace(/\\(?:vspace|hspace)\{[^}]*\}/g, '');
+
+    // 共通テストの枠 \ansbox{ア} などを [ ア ] に変換
+    bodyText = bodyText.replace(/\\ansbox\{([^}]+)\}/g, '[ $1 ]');
+
+    // tikzpicture環境はKaTeXで描画できないため [図] という文字に置き換え
+    bodyText = bodyText.replace(/\\begin\{tikzpicture\}[\s\S]*?\\end\{tikzpicture\}/g, '\n[図]\n');
 
     // 前後の不要な空白をトリム
     bodyText = bodyText.trim();
