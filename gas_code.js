@@ -75,12 +75,12 @@ function setupInitialData() {
   sheet.clear(); // シートをクリア
   
   // ヘッダーをセット
-  sheet.appendRow(["id", "university", "faculty", "year", "subject", "author", "units", "difficulty", "question_text"]);
+  sheet.appendRow(["id", "university", "faculty", "year", "subject", "author", "units", "difficulty", "question_text", "pdf_url", "tex_url"]);
   
   // テストデータ
   var initialData = [
-    ["東京大学_2025_第1問", "東京大学", "理科", "2025", "数学", "norihito", "確率, 微積分", 3, "第1問\n座標平面上の点 $\\text{A}(0,0)$, $\\text{B}(0,1)$, $\\text{C}(1,1)$, $\\text{D}(1,0)$ を考える。実数 $0<t<1$ に対して..."],
-    ["京都大学_2025_第6問", "京都大学", "理系", "2025", "数学", "member_A", "整数", 4, "第6問\n$n$ を正の整数とする。$n$ の正の約数のうち、3で割って1余るものの個数を $f(n)$、3で割って2余るものの個数を $g(n)$ とする。\n    (1) $f(2800)$, $g(2800)$ を求めよ。\n    (2) $f(n) \\ge g(n)$ を示せ。"]
+    ["東京大学_2025_第1問", "東京大学", "理科", "2025", "数学", "norihito", "確率, 微積分", 3, "第1問\n座標平面上の点 $\\text{A}(0,0)$, $\\text{B}(0,1)$, $\\text{C}(1,1)$, $\\text{D}(1,0)$ を考える。実数 $0<t<1$ に対して...", "", ""],
+    ["京都大学_2025_第6問", "京都大学", "理系", "2025", "数学", "member_A", "整数", 4, "第6問\n$n$ を正の整数とする。$n$ の正の約数のうち、3で割って1余るものの個数を $f(n)$、3で割って2余るものの個数を $g(n)$ とする。\n    (1) $f(2800)$, $g(2800)$ を求めよ。\n    (2) $f(n) \\ge g(n)$ を示せ。", "", ""]
   ];
   
   for (var i = 0; i < initialData.length; i++) {

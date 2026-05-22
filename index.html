@@ -13,6 +13,10 @@
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js" crossorigin="anonymous"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js" crossorigin="anonymous"></script>
     
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-storage-compat.js"></script>
+
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -113,8 +117,20 @@
                     <h1>過去問データベース</h1>
                     <p class="subtitle">全国の大学入試過去問を素早く検索・閲覧できます</p>
                 </div>
-                <div class="stats-badge" id="results-count">
-                    0 件ヒット
+                <div class="header-controls">
+                    <div class="sort-wrapper">
+                        <svg class="sort-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="6" y1="12" x2="18" y2="12"/><line x1="9" y1="18" x2="15" y2="18"/></svg>
+                        <select id="sort-select">
+                            <option value="default">登録順</option>
+                            <option value="difficulty-desc">難易度：高い順</option>
+                            <option value="difficulty-asc">難易度：低い順</option>
+                            <option value="year-desc">年度：新しい順</option>
+                            <option value="year-asc">年度：古い順</option>
+                        </select>
+                    </div>
+                    <div class="stats-badge" id="results-count">
+                        0 件ヒット
+                    </div>
                 </div>
             </header>
 
@@ -146,8 +162,9 @@
                 <h2 id="modal-title"></h2>
                 <p class="modal-subtitle" id="modal-subtitle"></p>
             </div>
-            <div class="modal-body">
+            <div class="modal-body" id="modal-body-container">
                 <p id="modal-text"></p>
+                <iframe id="modal-pdf-viewer" style="display: none;"></iframe>
             </div>
             <div class="modal-footer">
                 <button class="btn-primary" onclick="window.print()">
@@ -167,6 +184,24 @@
                 <p class="modal-subtitle">TeXコードを貼り付けてください。先頭のタグを自動で読み取ります。</p>
             </div>
             <div class="modal-body">
+                <div class="upload-section">
+                    <label class="upload-label">
+                        <span class="upload-title">📄 PDFファイル（任意）</span>
+                        <span class="upload-desc">図形を含む場合はPDFをアップロードしてください</span>
+                        <input type="file" id="post-pdf-input" accept="application/pdf">
+                    </label>
+                </div>
+                
+                <div class="upload-section" style="margin-top: 1rem;">
+                    <label class="upload-label">
+                        <span class="upload-title">📝 TeXファイル（任意）</span>
+                        <span class="upload-desc">.texファイルをアップロードするか、下の入力欄に直接貼り付けてください</span>
+                        <input type="file" id="post-tex-file-input" accept=".tex,text/plain">
+                    </label>
+                </div>
+
+                <div class="separator-text">または直接入力</div>
+
                 <textarea id="post-tex-input" class="tex-input" placeholder="@author {あなたの名前}
 @category{確率, 場合の数}
 @university{東京大学}
