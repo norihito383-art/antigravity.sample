@@ -561,6 +561,25 @@ async function handlePostSubmit() {
         return;
     }
 
+    // 必須タグのバリデーション
+    const missingTags = [];
+    if (!/(?:%\s*@author:|@author\s*\{)\s*([^}\n]+)/.test(rawTex)) missingTags.push('@author');
+    if (!/(?:%\s*@category:|@category\s*\{)\s*([^}\n]+)/.test(rawTex)) missingTags.push('@category');
+    if (!/(?:%\s*@university:|@university\s*\{)\s*([^}\n]+)/.test(rawTex)) missingTags.push('@university');
+    if (!/(?:%\s*@year:|@year\s*\{)\s*(\d+)/.test(rawTex)) missingTags.push('@year');
+    if (!/(?:%\s*@difficulty:|@difficulty\s*\{)\s*([1-5])/.test(rawTex)) missingTags.push('@difficulty');
+
+    if (missingTags.length > 0) {
+        showPostStatus(`必須タグが不足しているか値が不正です: ${missingTags.join(', ')}`, true);
+        return;
+    }
+
+    const parsedData = parseTexData(rawTex);
+    if (!pdfFile && !parsedData.question_text) {
+        showPostStatus("問題の本文が空です。本文を入力するか、PDFを選択してください。", true);
+        return;
+    }
+
     btnSubmitPost.disabled = true;
     btnSubmitPost.innerHTML = '送信中...';
     showPostStatus("データを処理しています...", false);
@@ -568,7 +587,6 @@ async function handlePostSubmit() {
     try {
         let pdfUrl = "";
         let texUrl = "";
-        const parsedData = parseTexData(rawTex);
         const fileBaseName = `${parsedData.id}_${Date.now()}`;
 
         // 1. Upload PDF if exists
